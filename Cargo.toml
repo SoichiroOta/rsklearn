@@ -59,6 +59,7 @@ approx = "0.3"
 
 [workspace]
 members = [
+    "datasets",
 ]
 
 [profile.release]
