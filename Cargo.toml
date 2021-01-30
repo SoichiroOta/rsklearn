@@ -2,8 +2,64 @@
 name = "rsklearn"
 version = "0.1.0"
 authors = ["Soichiro Ota <libarta.official@gmail.com>"]
+description = "A Machine Learning framework for Rust"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+repository = "https://github.com/SoichiroOta/rsklearn"
+readme = "README.md"
+
+keywords = ["machine-learning", "rsklearn", "ai", "ml"]
+categories = ["algorithms", "mathematics", "science"]
+
+exclude = [".github/"]
+
+[features]
+default = []
+
+netlib-static = ["blas", "ndarray-linalg", "netlib-src/static"]
+netlib-system = ["blas", "ndarray-linalg", "netlib-src/system"]
+
+openblas-static = ["blas", "ndarray-linalg", "openblas-src/static"]
+openblas-system = ["blas", "ndarray-linalg", "openblas-src/system"]
+
+intel-mkl-static = ["blas", "ndarray-linalg", "intel-mkl-src/mkl-static-lp64-seq", "intel-mkl-src/download"]
+intel-mkl-system = ["blas", "ndarray-linalg", "intel-mkl-src/mkl-dynamic-lp64-seq"]
+
+blas = ["ndarray/blas"]
+
 [dependencies]
+num-traits = "0.2"
+rand = "0.7"
+ndarray = { version = "0.13", default-features = false }
+ndarray-linalg = { version = "0.12", optional = true }
+
+[dependencies.intel-mkl-src]
+version = "0.6.0"
+default-features = false
+optional = true
+
+[dependencies.netlib-src]
+version = "0.8.0"
+optional = true
+features = ["cblas"]
+default-features = false
+
+[dependencies.openblas-src]
+version = "0.9.0"
+optional = true
+default-features = false
+features = ["cblas"]
+
+[dev-dependencies]
+ndarray-rand = "0.12"
+rand_isaac = "0.2"
+approx = "0.3"
+
+[workspace]
+members = [
+]
+
+[profile.release]
+opt-level = 3
