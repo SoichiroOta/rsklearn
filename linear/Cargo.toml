@@ -1,0 +1,28 @@
+[package]
+name = "rsklearn-linear"
+version = "0.1.0"
+authors = ["Soichiro Ota <libarta.official@gmail.com>"]
+description = "A Machine Learning framework for Rust"
+edition = "2018"
+
+repository = "https://github.com/SoichiroOta/rsklearn"
+readme = "README.md"
+
+keywords = ["machine-learning", "rsklearn", "ai", "ml", "linear"]
+categories = ["algorithms", "mathematics", "science"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ndarray = {version = "0.13", features = ["blas", "approx"]}
+ndarray-linalg = "0.12"
+ndarray-stats = "0.3"
+num-traits = "0.2"
+argmin = {version="0.3.1", features=["ndarrayl"]}
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+
+rsklearn = { version = "0.1.0", path = ".." }
+
+[dev-dependencies]
+rsklearn-datasets = { version = "0.1.0", path = "../datasets", features = ["diabetes"] }
+approx = "0.3.2"
