@@ -1,12 +1,15 @@
+#[macro_use(stack)]
+extern crate ndarray;
 use ndarray::prelude::*;
 use ndarray::{Array, Ix1, Ix2, Axis};
 use ndarray_stats::QuantileExt;
+use ndarray::Zip;
 
 pub struct Linear {
     epochs: usize,
     lr: f64,
     early_stop: Option<f64>,
-    beta: Option<f64>,
+    beta: Option<Array::<f64, Ix1>>,
     norm: Option<Array::<f64, Ix2>>,
 }
 
@@ -23,7 +26,7 @@ impl Linear {
         }
     }
 
-    pub fn fit_norm(mut self, x: Array::<f64, Ix2>, y: Array::<f64, Ix1>) -> Self {
+    pub fn fit_norm(&mut self, x: Array::<f64, Ix2>, y: Array::<f64, Ix1>) -> &Self {
         let mut norm = Array::<f64, Ix2>::zeros((x.shape()[1] + 1, 2));
 
         norm.slice_mut(s![0, 0]).fill(*y.min().unwrap());
@@ -38,25 +41,28 @@ impl Linear {
         self
     }
 
-    pub fn normalize(self, x: Array::<f64, Ix2>, y: Option<Array::<f64, Ix1>>) -> (Array::<f64, Ix2>, Option<Array::<f64, Ix1>>) {
-        let norm = self.norm.unwrap();
+    pub fn normalize(&self, x: Array::<f64, Ix2>, y: Option<Array::<f64, Ix1>>) -> (Array::<f64, Ix2>, Option<Array::<f64, Ix1>>) {
+        let norm = match &self.norm {
+            &None => {None},
+            _ => {self.norm.as_ref()}
+        }.unwrap();
         let mut l = &norm.slice(s![1.., 1]) - &norm.slice(s![1.., 0]);
         l = l.mapv(|v: f64| if v == 0.0 {
             1.0
         } else {
             v
         });
-        let mut p = &x - &norm.slice(s![1.., 0]);
+        let mut p = x - norm.slice(s![1.., 0]);
         p = &p / &l;
         let p_q = match y {
             None => {
-                (p, y)
+                (p, None)
             },
             Some(y) => {
                 let mut q = y;
-                if !(norm[[0, 1]] == norm[[0, 0]]) {
-                    q = q.mapv(|v: f64| v - norm[[0, 0]]);
-                    q = &q / (&norm[[0, 1]] - &norm[[0, 0]])
+                if !(&norm[[0, 1]] == &norm[[0, 0]]) {
+                    q = q.mapv(|v: f64| v - &norm[[0, 0]]);
+                    q = q / (norm[[0, 1]] - norm[[0, 0]]);
                 }
                 (p, Some(q))
             }
@@ -64,7 +70,7 @@ impl Linear {
         p_q
     }
 
-    pub fn r2(self, y: Array::<f64, Ix1>, z: Array::<f64, Ix1>) -> f64 {
+    pub fn r2(&self, y: Array::<f64, Ix1>, z: Array::<f64, Ix1>) -> f64 {
         let mut y_minus_z_pow2 = &y - &z;
         y_minus_z_pow2 = y_minus_z_pow2.mapv(|v: f64| v.powi(2));
         let mn = y_minus_z_pow2.sum();
@@ -79,6 +85,70 @@ impl Linear {
             1.0 - mn / dn
         };
         r2
+    }
+
+    pub fn fit(&mut self, x: Array::<f64, Ix2>, y: Array::<f64, Ix1>) -> &Self {
+        self.fit_norm(x.clone(), y.clone());
+        let (x_, y_) = self.normalize(x.clone(), Some(y.clone()));
+
+        let mut beta = Array::<f64, Ix1>::zeros(x_.shape()[1] + 1);
+
+        let data_len = x_.len();
+        let dim = x_.ncols();
+        for _ in 0..self.epochs {
+            for i in 0..data_len {
+                let p = x_.to_owned().index_axis(Axis(0), 0).to_owned();
+                let z = &self.predict(p.clone().into_shape((1, dim)).unwrap(), true);
+                let err = (z.clone()[[0]] - y_.as_ref().unwrap().clone()[[0]]) * self.lr;
+                let minus_delta = p.clone().mapv(|v: f64| -(v * err));
+
+                beta[[0]] -= err;
+                beta.slice_mut(s![1..]).assign(&minus_delta);
+            }
+            if !self.early_stop.is_none() {
+                let z = self.predict(x.clone(), true);
+                let s = self.r2(y.clone(), z.clone());
+                if self.early_stop.unwrap() <= s {
+                    break;
+                }
+            }
+        }
+        self
+    }
+
+    pub fn predict(&self, x: Array::<f64, Ix2>, normalized: bool) -> Array::<f64, Ix1> {
+        let prediction = if normalized == false {
+            let (x_, _) = &self.normalize(x, None);
+
+            let beta = &self.beta.as_ref().unwrap();
+            let mut z = Array::<f64, Ix1>::zeros(x_.len());
+            z.fill(beta[[0]]);
+            
+            let beta_len = beta.len();
+            let coef_len = beta_len - 1;
+            let mut coef = Array::<f64, Ix1>::zeros(coef_len);
+            for i in 0..coef_len {
+                coef[[i]] = beta[[i+1]];
+            }
+            z = &z + &x_.dot(&coef);
+            let norm = &self.norm.as_ref().unwrap();
+            z.mapv(|v: f64| v * (norm[[0, 1]] - norm[[0, 0]]) * norm[[0, 0]]);
+            z
+        } else {
+            let beta = &self.beta.as_ref().unwrap();
+            let mut z = Array::<f64, Ix1>::zeros(x.len());
+            z.fill(beta[[0]]);
+            
+            let beta_len = beta.len();
+            let coef_len = beta_len - 1;
+            let mut coef = Array::<f64, Ix1>::zeros(coef_len);
+            for i in 0..coef_len {
+                coef[[i]] = beta[[i+1]];
+            }
+            z = &z + &x.dot(&coef);
+            z
+        };
+        prediction
     }
 }
 
