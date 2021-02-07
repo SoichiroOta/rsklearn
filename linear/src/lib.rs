@@ -3,7 +3,6 @@ extern crate ndarray;
 use ndarray::prelude::*;
 use ndarray::{Array, Ix1, Ix2, Axis};
 use ndarray_stats::QuantileExt;
-use ndarray::Zip;
 
 pub struct Linear {
     epochs: usize,
@@ -11,6 +10,18 @@ pub struct Linear {
     early_stop: Option<f64>,
     beta: Option<Array::<f64, Ix1>>,
     norm: Option<Array::<f64, Ix2>>,
+}
+
+impl Default for Linear {
+    fn default() -> Self {
+        Linear {
+            epochs: 20,
+            lr: 0.01,
+            early_stop: None,
+            beta: None,
+            norm: None,
+        }
+    }
 }
 
 /// Configure and fit a linear regression model
@@ -87,7 +98,12 @@ impl Linear {
         r2
     }
 
-    pub fn fit(&mut self, x: Array::<f64, Ix2>, y: Array::<f64, Ix1>) -> &Self {
+    pub fn set_beta(&mut self, beta: Array::<f64, Ix1>) -> &Self {
+        self.beta = Some(beta);
+        self
+    }
+
+    pub fn fit(&mut self, x: &Array::<f64, Ix2>, y: &Array::<f64, Ix1>) -> &Self {
         self.fit_norm(x.clone(), y.clone());
         let (x_, y_) = self.normalize(x.clone(), Some(y.clone()));
 
@@ -96,8 +112,9 @@ impl Linear {
         let data_len = x_.len();
         let dim = x_.ncols();
         for _ in 0..self.epochs {
-            for i in 0..data_len {
+            for _ in 0..data_len {
                 let p = x_.to_owned().index_axis(Axis(0), 0).to_owned();
+                self.beta = Some(beta.clone());
                 let z = &self.predict(p.clone().into_shape((1, dim)).unwrap(), true);
                 let err = (z.clone()[[0]] - y_.as_ref().unwrap().clone()[[0]]) * self.lr;
                 let minus_delta = p.clone().mapv(|v: f64| -(v * err));
@@ -151,9 +168,9 @@ impl Linear {
         prediction
     }
 
-    pub fn str(&self) -> &'static str {
+    pub fn str(&self) -> String {
         match self.beta {
-            None => &"0.0",
+            None => String::from("0.0"),
             _ => {
                 let mut s = Vec::new();
                 let beta = self.beta.as_ref().unwrap();
@@ -161,20 +178,8 @@ impl Linear {
                 for i in 1..self.beta.as_ref().unwrap().len() {
                     s.push(format!(" + feat[ {} ] * {}", i.to_string(), beta[[i]].to_string()));
                 }
-                &s.iter().cloned().collect::<String>()
-        }
-           
-    }
-}
-
-impl Default for Linear {
-    fn default() -> Self {
-        Linear {
-            epochs: 20,
-            lr: 0.01,
-            early_stop:None,
-            beta: None,
-            norm: None,
-        }
+                String::from(s.iter().cloned().collect::<String>())
+            }
+        }      
     }
 }
