@@ -150,6 +150,21 @@ impl Linear {
         };
         prediction
     }
+
+    pub fn str(&self) -> &'static str {
+        match self.beta {
+            None => &"0.0",
+            _ => {
+                let mut s = Vec::new();
+                let beta = self.beta.as_ref().unwrap();
+                s.push(beta[[0]].to_string());
+                for i in 1..self.beta.as_ref().unwrap().len() {
+                    s.push(format!(" + feat[ {} ] * {}", i.to_string(), beta[[i]].to_string()));
+                }
+                &s.iter().cloned().collect::<String>()
+        }
+           
+    }
 }
 
 impl Default for Linear {
