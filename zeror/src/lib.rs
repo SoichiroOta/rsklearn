@@ -1,6 +1,6 @@
 extern crate ndarray;
 use ndarray::{Array, Ix1, Ix2};
-use ndarray::Zip;
+use ndarray::prelude::*;
 
 pub struct ZeroRule {
     r:  Option<Array::<f64, Ix1>>,
@@ -22,11 +22,11 @@ impl ZeroRule {
     }
 
     pub fn fit(&mut self, _x: &Array::<f64, Ix2>, y: &Array::<f64, Ix2>) -> &Self {
-        let mut totals = Array::<f64, Ix1>::zeros(y.shape()[1]);
-        Zip::from(&mut totals)
-            .and(y.gencolumns())
-            .apply(|totals, col| *totals = col.sum());
-        self.r = Some(totals.mapv(|v: f64| v / y.len() as f64));
+        let mut r = Array::<f64, Ix1>::zeros(y.shape()[1]);
+        for i in 0..y.shape()[1] {
+            r.slice_mut(s![i]).fill(y.slice(s![.., i]).mean().unwrap());
+        }
+        self.r = Some(r);
         self
     }
 
