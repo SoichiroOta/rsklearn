@@ -1039,6 +1039,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "rsklearn-zeror"
+version = "0.1.0"
+dependencies = [
+ "approx",
+ "argmin",
+ "ndarray 0.13.1",
+ "ndarray-linalg",
+ "ndarray-stats",
+ "num-traits",
+ "rsklearn",
+ "rsklearn-datasets",
+ "serde",
+]
+
+[[package]]
 name = "rust-argon2"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
