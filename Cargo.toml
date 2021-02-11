@@ -34,6 +34,7 @@ num-traits = "0.2"
 rand = "0.7"
 ndarray = { version = "0.13", default-features = false }
 ndarray-linalg = { version = "0.12", optional = true }
+ndarray-stats = "0.3"
 
 [dependencies.intel-mkl-src]
 version = "0.6.0"

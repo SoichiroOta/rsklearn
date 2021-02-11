@@ -1005,6 +1005,7 @@ dependencies = [
  "ndarray 0.13.1",
  "ndarray-linalg",
  "ndarray-rand 0.12.0",
+ "ndarray-stats",
  "netlib-src",
  "num-traits",
  "openblas-src",
