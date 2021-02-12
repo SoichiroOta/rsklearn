@@ -109,8 +109,8 @@ impl Linear {
 
         let mut beta = Array::<f64, Ix1>::zeros(x_.shape()[1] + 1);
 
-        let data_len = x_.len();
-        let dim = x_.ncols();
+        let data_len = x_.shape()[0];
+        let dim = x_.shape()[1];
         for _ in 0..self.epochs {
             for _ in 0..data_len {
                 let p = x_.to_owned().index_axis(Axis(0), 0).to_owned();
@@ -138,10 +138,10 @@ impl Linear {
             let (x_, _) = &self.normalize(x, None);
 
             let beta = &self.beta.as_ref().unwrap();
-            let mut z = Array::<f64, Ix1>::zeros(x_.len());
+            let mut z = Array::<f64, Ix1>::zeros(x_.shape()[0]);
             z.fill(beta[[0]]);
             
-            let beta_len = beta.len();
+            let beta_len = beta.shape()[0];
             let coef_len = beta_len - 1;
             let mut coef = Array::<f64, Ix1>::zeros(coef_len);
             for i in 0..coef_len {
@@ -153,10 +153,10 @@ impl Linear {
             z
         } else {
             let beta = &self.beta.as_ref().unwrap();
-            let mut z = Array::<f64, Ix1>::zeros(x.len());
+            let mut z = Array::<f64, Ix1>::zeros(x.shape()[0]);
             z.fill(beta[[0]]);
             
-            let beta_len = beta.len();
+            let beta_len = beta.shape()[0];
             let coef_len = beta_len - 1;
             let mut coef = Array::<f64, Ix1>::zeros(coef_len);
             for i in 0..coef_len {
