@@ -102,7 +102,7 @@ impl Linear {
         self
     }
 
-    pub fn fit(&mut self, x: &Array::<f64, Ix2>, y: &Array::<f64, Ix1>) -> &Self {
+    pub fn fit(mut self, x: Array::<f64, Ix2>, y: Array::<f64, Ix1>) -> Self {
         self.fit_norm(x.clone(), y.clone());
         let (x_, y_) = self.normalize(x.clone(), Some(y.clone()));
 
@@ -181,4 +181,8 @@ impl Linear {
             }
         }      
     }
+}
+
+pub fn linear() -> Linear {
+    Linear::default()
 }

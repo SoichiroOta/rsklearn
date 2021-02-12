@@ -4,6 +4,7 @@ use ndarray::{Array, Ix2};
 use ndarray::prelude::*;
 
 use rsklearn_zeror::ZeroRule;
+use rsklearn_dstump::DecisionStump;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // load Diabetes dataset
@@ -19,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    let plf = ZeroRule::new();
+    let plf = DecisionStump::<ZeroRule>::default();
     let model = plf.fit(dataset.records, targets);
 
     println!("Model: {}", model.str());

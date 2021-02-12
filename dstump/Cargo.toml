@@ -26,5 +26,5 @@ rsklearn-linear = { version = "0.1.0", path = "../linear" }
 rsklearn-zeror = { version = "0.1.0", path = "../zeror" }
 
 [dev-dependencies]
-rsklearn-datasets = { version = "0.1.0", path = "../datasets", features = ["iris"] }
+rsklearn-datasets = { version = "0.1.0", path = "../datasets", features = ["iris", "diabetes"] }
 approx = "0.3.2"
