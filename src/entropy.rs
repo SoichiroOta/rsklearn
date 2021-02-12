@@ -30,7 +30,7 @@ pub fn gini_org(y: Array<f64, Ix2>) -> f64 {
         }
         
     }
-    let size = y.len() as f64;
+    let size = y.shape()[0] as f64;
     let mut score = 0.0 as f64;
     for val in clz.iter() {
         score += (*c.get(val).unwrap() / size).powi(2);
@@ -40,9 +40,9 @@ pub fn gini_org(y: Array<f64, Ix2>) -> f64 {
 
 pub fn gini(y: Array<f64, Ix2>) -> f64 {
     let m = y.sum_axis(Axis(0));
-    let size = y.len() as f64;
-    let mut e = Array::<f64, Ix1>::zeros(m.len());
-    for i in 0..m.len() {
+    let size = y.shape()[0] as f64;
+    let mut e = Array::<f64, Ix1>::zeros(m.shape()[0]);
+    for i in 0..m.shape()[0] {
         e.slice_mut(s![i]).fill((m[i] / size).powi(2));
     }
     1.0 - e.sum()
@@ -63,7 +63,7 @@ pub fn infgain_org(y: Array<f64, Ix2>) -> f64 {
             c.insert(cl, *c.get(cl).unwrap() + 1.0 as f64);
         } 
     }
-    let size = y.len() as f64;
+    let size = y.shape()[0] as f64;
     let mut score = 0.0 as f64;
     for val in clz.iter() {
         let p = *c.get(val).unwrap() / size;
@@ -76,9 +76,9 @@ pub fn infgain_org(y: Array<f64, Ix2>) -> f64 {
 
 pub fn infgain(y: Array<f64, Ix2>) -> f64 {
     let m = y.sum_axis(Axis(0));
-    let size = y.len() as f64;
-    let mut e = Array::<f64, Ix1>::zeros(m.len());
-    for i in 0..m.len() {
+    let size = y.shape()[0] as f64;
+    let mut e = Array::<f64, Ix1>::zeros(m.shape()[0]);
+    for i in 0..m.shape()[0] {
         if m[i] != 0.0 as f64 {
             e.slice_mut(s![i]).fill(m[i] * (m[i] / size).log2());
         }  
