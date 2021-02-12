@@ -31,7 +31,7 @@ impl ZeroRule {
     }
 
     pub fn predict(&self, x: Array::<f64, Ix2>) -> Array::<f64, Ix2> {
-        let z = Array::<f64, _>::zeros((x.len(), self.r.as_ref().unwrap().clone().len()));
+        let z = Array::<f64, _>::zeros((x.shape()[0], self.r.as_ref().unwrap().clone().shape()[0]));
         z.clone() + self.r.as_ref().unwrap().clone()
     }
 
@@ -42,8 +42,8 @@ impl ZeroRule {
                 let mut s = Vec::new();
                 let r = self.r.as_ref().unwrap();
                 s.push(format!("[{},", r[[0]].to_string()));
-                for i in 1..self.r.as_ref().unwrap().len() {
-                    if i < self.r.as_ref().unwrap().len() - 1 {
+                for i in 1..self.r.as_ref().unwrap().shape()[0] {
+                    if i < self.r.as_ref().unwrap().shape()[0] - 1 {
                         s.push(format!(" {},", r[[i]].to_string()));
                     } else {
                         s.push(format!(" {}]", r[[i]].to_string()));
