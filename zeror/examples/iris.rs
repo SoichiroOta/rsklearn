@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let mut plf = ZeroRule::new();
-    let model = plf.fit(&dataset.records, &targets);
+    let model = plf.fit(dataset.records, targets);
 
     println!("Model: {}", model.str());
 
