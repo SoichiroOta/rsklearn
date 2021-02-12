@@ -1,4 +1,3 @@
-#[macro_use(stack)]
 extern crate ndarray;
 use ndarray::prelude::*;
 use ndarray::{Array, Ix1, Ix2, Axis};
@@ -175,7 +174,7 @@ impl Linear {
                 let mut s = Vec::new();
                 let beta = self.beta.as_ref().unwrap();
                 s.push(beta[[0]].to_string());
-                for i in 1..self.beta.as_ref().unwrap().len() {
+                for i in 1..self.beta.as_ref().unwrap().shape()[0] {
                     s.push(format!(" + feat[ {} ] * {}", i.to_string(), beta[[i]].to_string()));
                 }
                 String::from(s.iter().cloned().collect::<String>())
