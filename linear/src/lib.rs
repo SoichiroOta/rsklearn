@@ -183,6 +183,6 @@ impl Linear {
     }
 }
 
-pub fn linear() -> Linear {
-    Linear::default()
+pub fn linear(epochs: usize, lr: f64, early_stop: Option<f64>) -> Linear {
+    Linear::new(epochs, lr, early_stop)
 }

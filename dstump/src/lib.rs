@@ -9,24 +9,34 @@ use rsklearn_linear::{Linear, linear};
 
 pub struct DecisionStump<T> {
     metric: fn(Array<f64, Ix2>) -> f64,
-    leaf: fn() -> T,
+    leaf: fn(Option<usize>, Option<f64>, Option<f64>) -> T,
     left: Option<T>,
     right: Option<T>,
     feat_index: usize,
     feat_val: f64,
     score: f64,
+    epochs: Option<usize>,
+    lr: Option<f64>,
+    early_stop: Option<f64>,
+}
+
+pub fn zero_rule_leaf(_epochs: Option<usize>, _lr: Option<f64>, _early_stop: Option<f64>) -> ZeroRule {
+    zero_rule()
 }
 
 impl Default for DecisionStump<ZeroRule> {
     fn default() -> Self {
         DecisionStump {
             metric: gini,
-            leaf: zero_rule,
+            leaf: zero_rule_leaf,
             left: None,
             right: None,
             feat_index: 0,
             feat_val: f64::NAN,
             score: f64::NAN,
+            epochs: None,
+            lr: None,
+            early_stop: None,
         }
     }
 }
@@ -35,12 +45,15 @@ impl DecisionStump<ZeroRule> {
     pub fn new(metric: fn(Array<f64, Ix2>) -> f64) -> DecisionStump<ZeroRule> {
         DecisionStump {
             metric: metric,
-            leaf: zero_rule,
+            leaf: zero_rule_leaf,
             left: None,
             right: None,
             feat_index: 0,
             feat_val: f64::NAN,
             score: f64::NAN,
+            epochs: None,
+            lr: None,
+            early_stop: None,
         }
     }
 
@@ -112,7 +125,7 @@ impl DecisionStump<ZeroRule> {
             for (i, left_elm) in left.iter().enumerate() {
                 y_left.slice_mut(s![i, ..]).assign(&y.clone().slice(s![*left_elm, ..]));
             }
-            self.left = Some(leaf().fit(x_left, y_left));
+            self.left = Some(leaf(None, None, None).fit(x_left, y_left));
         }
         if right.len() > 0 {
             let mut x_right = Array::<f64, Ix2>::zeros((right.len(), x.clone().shape()[1]));
@@ -123,7 +136,7 @@ impl DecisionStump<ZeroRule> {
             for (i, right_elm) in right.iter().enumerate() {
                 y_right.slice_mut(s![i, ..]).assign(&y.clone().slice(s![*right_elm, ..]));
             }
-            self.right = Some(leaf().fit(x_right, y_right));
+            self.right = Some(leaf(None, None, None).fit(x_right, y_right));
         }
         self
     }
@@ -174,30 +187,40 @@ impl DecisionStump<ZeroRule> {
     }
 }
 
+pub fn linear_leaf(epochs: Option<usize>, lr: Option<f64>, early_stop: Option<f64>) -> Linear {
+    linear(epochs.unwrap(), lr.unwrap(), early_stop)
+}
+
 impl Default for DecisionStump<Linear> {
     fn default() -> Self {
         DecisionStump {
             metric: gini,
-            leaf: linear,
+            leaf: linear_leaf,
             left: None,
             right: None,
             feat_index: 0,
             feat_val: f64::NAN,
             score: f64::NAN,
+            epochs: Some(20),
+            lr: Some(0.01),
+            early_stop: None,
         }
     }
 }
 
 impl DecisionStump<Linear> {
-    pub fn new(metric: fn(Array<f64, Ix2>) -> f64) -> DecisionStump<Linear> {
+    pub fn new(metric: fn(Array<f64, Ix2>) -> f64, epochs: Option<usize>, lr: Option<f64>, early_stop: Option<f64>) -> DecisionStump<Linear> {
         DecisionStump {
             metric: metric,
-            leaf: linear,
+            leaf: linear_leaf,
             left: None,
             right: None,
             feat_index: 0,
             feat_val: f64::NAN,
             score: f64::NAN,
+            epochs: epochs,
+            lr: lr,
+            early_stop: early_stop,
         }
     }
 
@@ -273,7 +296,7 @@ impl DecisionStump<Linear> {
             for (i, left_elm) in left.iter().enumerate() {
                 y_left.slice_mut(s![i]).assign(&y.clone().slice(s![*left_elm]));
             }
-            self.left = Some(leaf().fit(x_left, y_left));
+            self.left = Some(leaf(self.epochs, self.lr, self.early_stop).fit(x_left, y_left));
         }
         if right.len() > 0 {
             let mut x_right = Array::<f64, Ix2>::zeros((right.len(), x.clone().shape()[1]));
@@ -284,7 +307,7 @@ impl DecisionStump<Linear> {
             for (i, right_elm) in right.iter().enumerate() {
                 y_right.slice_mut(s![i]).assign(&y.clone().slice(s![*right_elm]));
             }
-            self.right = Some(leaf().fit(x_right, y_right));
+            self.right = Some(leaf(self.epochs, self.lr, self.early_stop).fit(x_right, y_right));
         }
         self
     }
