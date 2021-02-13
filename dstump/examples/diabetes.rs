@@ -1,7 +1,7 @@
 use std::error::Error;
 
-use rsklearn_linear::Linear;
 use rsklearn_dstump::DecisionStump;
+use rsklearn_linear::Linear;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // load Diabetes dataset

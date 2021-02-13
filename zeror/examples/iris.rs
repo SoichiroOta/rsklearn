@@ -1,7 +1,7 @@
 use std::error::Error;
 
-use ndarray::{Array, Ix2};
 use ndarray::prelude::*;
+use ndarray::{Array, Ix2};
 
 use rsklearn_zeror::ZeroRule;
 
