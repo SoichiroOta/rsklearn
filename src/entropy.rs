@@ -25,13 +25,13 @@ pub fn gini_org(y: Array<f64, Ix2>) -> f64 {
     for cl in i.iter() {
         clz.insert(cl);
         if c.contains_key(cl) {
-            c.insert(cl, 1.0 as f64);
+            c.insert(cl, 1.0_f64);
         } else {
-            c.insert(cl, *c.get(cl).unwrap() + 1.0 as f64);
+            c.insert(cl, *c.get(cl).unwrap() + 1.0_f64);
         }
     }
     let size = y.shape()[0] as f64;
-    let mut score = 0.0 as f64;
+    let mut score = 0.0_f64;
     for val in clz.iter() {
         score += (*c.get(val).unwrap() / size).powi(2);
     }
@@ -59,16 +59,16 @@ pub fn infgain_org(y: Array<f64, Ix2>) -> f64 {
     for cl in i.iter() {
         clz.insert(cl);
         if c.contains_key(cl) {
-            c.insert(cl, 1.0 as f64);
+            c.insert(cl, 1.0_f64);
         } else {
-            c.insert(cl, *c.get(cl).unwrap() + 1.0 as f64);
+            c.insert(cl, *c.get(cl).unwrap() + 1.0_f64);
         }
     }
     let size = y.shape()[0] as f64;
-    let mut score = 0.0 as f64;
+    let mut score = 0.0_f64;
     for val in clz.iter() {
         let p = *c.get(val).unwrap() / size;
-        if p != 0.0 as f64 {
+        if p != 0.0_f64 {
             score += p * p.log2();
         }
     }
@@ -80,7 +80,7 @@ pub fn infgain(y: Array<f64, Ix2>) -> f64 {
     let size = y.shape()[0] as f64;
     let mut e = Array::<f64, Ix1>::zeros(m.shape()[0]);
     for i in 0..m.shape()[0] {
-        if m[i] != 0.0 as f64 {
+        if m[i] != 0.0_f64 {
             e.slice_mut(s![i]).fill(m[i] * (m[i] / size).log2());
         }
     }
