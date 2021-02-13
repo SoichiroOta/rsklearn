@@ -1,10 +1,10 @@
 use std::error::Error;
 
-use ndarray::{Array, Ix2};
 use ndarray::prelude::*;
+use ndarray::{Array, Ix2};
 
-use rsklearn_zeror::ZeroRule;
 use rsklearn_dstump::DecisionStump;
+use rsklearn_zeror::ZeroRule;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // load Diabetes dataset

@@ -1,11 +1,10 @@
 extern crate ndarray;
-use ndarray::{Array, Ix1, Ix2};
 use ndarray::prelude::*;
+use ndarray::{Array, Ix1, Ix2};
 
-use rsklearn::entropy::{gini};
-use rsklearn_zeror::{ZeroRule, zero_rule};
-use rsklearn_linear::{Linear, linear};
-
+use rsklearn::entropy::gini;
+use rsklearn_linear::{linear, Linear};
+use rsklearn_zeror::{zero_rule, ZeroRule};
 
 pub struct DecisionStump<T> {
     metric: fn(Array<f64, Ix2>) -> f64,
@@ -20,7 +19,11 @@ pub struct DecisionStump<T> {
     early_stop: Option<f64>,
 }
 
-pub fn zero_rule_leaf(_epochs: Option<usize>, _lr: Option<f64>, _early_stop: Option<f64>) -> ZeroRule {
+pub fn zero_rule_leaf(
+    _epochs: Option<usize>,
+    _lr: Option<f64>,
+    _early_stop: Option<f64>,
+) -> ZeroRule {
     zero_rule()
 }
 
@@ -57,7 +60,7 @@ impl DecisionStump<ZeroRule> {
         }
     }
 
-    pub fn make_split(&self, feat: Array::<f64, Ix1>, val: f64) -> (Vec<usize>, Vec<usize>) {
+    pub fn make_split(&self, feat: Array<f64, Ix1>, val: f64) -> (Vec<usize>, Vec<usize>) {
         let mut left = Vec::new();
         let mut right = Vec::new();
         for (i, v) in feat.iter().enumerate() {
@@ -70,9 +73,9 @@ impl DecisionStump<ZeroRule> {
         (left, right)
     }
 
-    pub fn make_loss(&self, y1: Array::<f64, Ix2>, y2: Array::<f64, Ix2>) -> f64 {
+    pub fn make_loss(&self, y1: Array<f64, Ix2>, y2: Array<f64, Ix2>) -> f64 {
         if y1.shape()[0] == 0 || y2.shape()[0] == 0 {
-            return f64::INFINITY
+            return f64::INFINITY;
         }
         let total = y1.shape()[0] as f64 + y2.shape()[0] as f64;
         let metric = self.metric;
@@ -81,7 +84,11 @@ impl DecisionStump<ZeroRule> {
         m1 + m2
     }
 
-    pub fn split_tree(&mut self, x: Array::<f64, Ix2>, y: Array::<f64, Ix2>) -> (Vec<usize>, Vec<usize>) {
+    pub fn split_tree(
+        &mut self,
+        x: Array<f64, Ix2>,
+        y: Array<f64, Ix2>,
+    ) -> (Vec<usize>, Vec<usize>) {
         self.feat_index = 0;
         self.feat_val = f64::INFINITY;
         let mut score = f64::INFINITY;
@@ -113,35 +120,43 @@ impl DecisionStump<ZeroRule> {
         (left, right)
     }
 
-    pub fn fit(mut self, x: Array::<f64, Ix2>, y: Array::<f64, Ix2>) -> Self {
+    pub fn fit(mut self, x: Array<f64, Ix2>, y: Array<f64, Ix2>) -> Self {
         let leaf = self.leaf;
         let (left, right) = self.split_tree(x.clone(), y.clone());
         if left.len() > 0 {
             let mut x_left = Array::<f64, Ix2>::zeros((left.len(), x.clone().shape()[1]));
             for (i, left_elm) in left.iter().enumerate() {
-                x_left.slice_mut(s![i, ..]).assign(&x.clone().slice(s![*left_elm, ..]));
+                x_left
+                    .slice_mut(s![i, ..])
+                    .assign(&x.clone().slice(s![*left_elm, ..]));
             }
             let mut y_left = Array::<f64, Ix2>::zeros((left.len(), y.clone().shape()[1]));
             for (i, left_elm) in left.iter().enumerate() {
-                y_left.slice_mut(s![i, ..]).assign(&y.clone().slice(s![*left_elm, ..]));
+                y_left
+                    .slice_mut(s![i, ..])
+                    .assign(&y.clone().slice(s![*left_elm, ..]));
             }
             self.left = Some(leaf(None, None, None).fit(x_left, y_left));
         }
         if right.len() > 0 {
             let mut x_right = Array::<f64, Ix2>::zeros((right.len(), x.clone().shape()[1]));
             for (i, right_elm) in right.iter().enumerate() {
-                x_right.slice_mut(s![i, ..]).assign(&x.clone().slice(s![*right_elm, ..]));
+                x_right
+                    .slice_mut(s![i, ..])
+                    .assign(&x.clone().slice(s![*right_elm, ..]));
             }
             let mut y_right = Array::<f64, Ix2>::zeros((right.len(), y.clone().shape()[1]));
             for (i, right_elm) in right.iter().enumerate() {
-                y_right.slice_mut(s![i, ..]).assign(&y.clone().slice(s![*right_elm, ..]));
+                y_right
+                    .slice_mut(s![i, ..])
+                    .assign(&y.clone().slice(s![*right_elm, ..]));
             }
             self.right = Some(leaf(None, None, None).fit(x_right, y_right));
         }
         self
     }
 
-    pub fn predict(&self, x: Array::<f64, Ix2>) -> Option<Array::<f64, Ix2>> {
+    pub fn predict(&self, x: Array<f64, Ix2>) -> Option<Array<f64, Ix2>> {
         let feat = x.slice(s![.., self.feat_index]);
         let val = self.feat_val;
         let (l, r) = self.make_split(feat.to_owned(), val.to_owned());
@@ -163,14 +178,14 @@ impl DecisionStump<ZeroRule> {
             for (i, r_elm) in r.iter().enumerate() {
                 z.slice_mut(s![*r_elm, ..]).assign(&right.slice(s![i, ..]));
             }
-            Some(z)  
+            Some(z)
         } else if l.len() > 0 {
             Some(self.left.as_ref().unwrap().predict(x))
         } else if r.len() > 0 {
             Some(self.right.as_ref().unwrap().predict(x))
-        }  else {
+        } else {
             None
-        } 
+        }
     }
 
     pub fn str(&self) -> String {
@@ -178,7 +193,11 @@ impl DecisionStump<ZeroRule> {
             String::from("None")
         } else {
             let mut s = Vec::new();
-            s.push(format!("    if feat[ {} ] <= {} then:\n", self.feat_index.to_string(), self.feat_val.to_string()));
+            s.push(format!(
+                "    if feat[ {} ] <= {} then:\n",
+                self.feat_index.to_string(),
+                self.feat_val.to_string()
+            ));
             s.push(format!("        {}\n", self.left.as_ref().unwrap().str()));
             s.push(String::from("    else\n"));
             s.push(format!("        {}\n", self.right.as_ref().unwrap().str()));
@@ -209,7 +228,12 @@ impl Default for DecisionStump<Linear> {
 }
 
 impl DecisionStump<Linear> {
-    pub fn new(metric: fn(Array<f64, Ix2>) -> f64, epochs: Option<usize>, lr: Option<f64>, early_stop: Option<f64>) -> DecisionStump<Linear> {
+    pub fn new(
+        metric: fn(Array<f64, Ix2>) -> f64,
+        epochs: Option<usize>,
+        lr: Option<f64>,
+        early_stop: Option<f64>,
+    ) -> DecisionStump<Linear> {
         DecisionStump {
             metric: metric,
             leaf: linear_leaf,
@@ -224,7 +248,7 @@ impl DecisionStump<Linear> {
         }
     }
 
-    pub fn make_split(&self, feat: Array::<f64, Ix1>, val: f64) -> (Vec<usize>, Vec<usize>) {
+    pub fn make_split(&self, feat: Array<f64, Ix1>, val: f64) -> (Vec<usize>, Vec<usize>) {
         let mut left = Vec::new();
         let mut right = Vec::new();
         for (i, v) in feat.iter().enumerate() {
@@ -237,22 +261,26 @@ impl DecisionStump<Linear> {
         (left, right)
     }
 
-    pub fn make_loss(&self, y1: Array::<f64, Ix1>, y2: Array::<f64, Ix1>) -> f64 {
+    pub fn make_loss(&self, y1: Array<f64, Ix1>, y2: Array<f64, Ix1>) -> f64 {
         if y1.shape()[0] == 0 || y2.shape()[0] == 0 {
-            return f64::INFINITY
+            return f64::INFINITY;
         }
         let total = y1.shape()[0] as f64 + y2.shape()[0] as f64;
         let metric = self.metric;
         let mut y1_ix2 = Array::<f64, Ix2>::zeros((y1.shape()[0], 1));
         y1_ix2.slice_mut(s![.., 0]).assign(&y1);
-        let m1 = metric(y1_ix2.clone()) * (y1_ix2.shape()[0] as f64 / total);       
+        let m1 = metric(y1_ix2.clone()) * (y1_ix2.shape()[0] as f64 / total);
         let mut y2_ix2 = Array::<f64, Ix2>::zeros((y2.shape()[0], 1));
         y2_ix2.slice_mut(s![.., 0]).assign(&y2);
         let m2 = metric(y2_ix2.clone()) * (y2_ix2.shape()[0] as f64 / total);
         m1 + m2
     }
 
-    pub fn split_tree(&mut self, x: Array::<f64, Ix2>, y: Array::<f64, Ix1>) -> (Vec<usize>, Vec<usize>) {
+    pub fn split_tree(
+        &mut self,
+        x: Array<f64, Ix2>,
+        y: Array<f64, Ix1>,
+    ) -> (Vec<usize>, Vec<usize>) {
         self.feat_index = 0;
         self.feat_val = f64::INFINITY;
         let mut score = f64::INFINITY;
@@ -284,35 +312,43 @@ impl DecisionStump<Linear> {
         (left, right)
     }
 
-    pub fn fit(mut self, x: Array::<f64, Ix2>, y: Array::<f64, Ix1>) -> Self {
+    pub fn fit(mut self, x: Array<f64, Ix2>, y: Array<f64, Ix1>) -> Self {
         let leaf = self.leaf;
         let (left, right) = self.split_tree(x.clone(), y.clone());
         if left.len() > 0 {
             let mut x_left = Array::<f64, Ix2>::zeros((left.len(), x.clone().shape()[1]));
             for (i, left_elm) in left.iter().enumerate() {
-                x_left.slice_mut(s![i, ..]).assign(&x.clone().slice(s![*left_elm, ..]));
+                x_left
+                    .slice_mut(s![i, ..])
+                    .assign(&x.clone().slice(s![*left_elm, ..]));
             }
             let mut y_left = Array::<f64, Ix1>::zeros(left.len());
             for (i, left_elm) in left.iter().enumerate() {
-                y_left.slice_mut(s![i]).assign(&y.clone().slice(s![*left_elm]));
+                y_left
+                    .slice_mut(s![i])
+                    .assign(&y.clone().slice(s![*left_elm]));
             }
             self.left = Some(leaf(self.epochs, self.lr, self.early_stop).fit(x_left, y_left));
         }
         if right.len() > 0 {
             let mut x_right = Array::<f64, Ix2>::zeros((right.len(), x.clone().shape()[1]));
             for (i, right_elm) in right.iter().enumerate() {
-                x_right.slice_mut(s![i, ..]).assign(&x.clone().slice(s![*right_elm, ..]));
+                x_right
+                    .slice_mut(s![i, ..])
+                    .assign(&x.clone().slice(s![*right_elm, ..]));
             }
             let mut y_right = Array::<f64, Ix1>::zeros(right.len());
             for (i, right_elm) in right.iter().enumerate() {
-                y_right.slice_mut(s![i]).assign(&y.clone().slice(s![*right_elm]));
+                y_right
+                    .slice_mut(s![i])
+                    .assign(&y.clone().slice(s![*right_elm]));
             }
             self.right = Some(leaf(self.epochs, self.lr, self.early_stop).fit(x_right, y_right));
         }
         self
     }
 
-    pub fn predict(&self, x: Array::<f64, Ix2>) -> Option<Array::<f64, Ix1>> {
+    pub fn predict(&self, x: Array<f64, Ix2>) -> Option<Array<f64, Ix1>> {
         let feat = x.slice(s![.., self.feat_index]);
         let val = self.feat_val;
         let (l, r) = self.make_split(feat.to_owned(), val.to_owned());
@@ -334,14 +370,14 @@ impl DecisionStump<Linear> {
             for (i, r_elm) in r.iter().enumerate() {
                 z.slice_mut(s![*r_elm]).assign(&right.slice(s![i]));
             }
-            Some(z)  
+            Some(z)
         } else if l.len() > 0 {
             Some(self.left.as_ref().unwrap().predict(x, true))
         } else if r.len() > 0 {
             Some(self.right.as_ref().unwrap().predict(x, true))
-        }  else {
+        } else {
             None
-        } 
+        }
     }
 
     pub fn str(&self) -> String {
@@ -349,7 +385,11 @@ impl DecisionStump<Linear> {
             String::from("None")
         } else {
             let mut s = Vec::new();
-            s.push(format!("    if feat[ {} ] <= {} then:\n", self.feat_index.to_string(), self.feat_val.to_string()));
+            s.push(format!(
+                "    if feat[ {} ] <= {} then:\n",
+                self.feat_index.to_string(),
+                self.feat_val.to_string()
+            ));
             s.push(format!("        {}\n", self.left.as_ref().unwrap().str()));
             s.push(String::from("    else\n"));
             s.push(format!("        {}\n", self.right.as_ref().unwrap().str()));
