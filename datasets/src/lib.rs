@@ -1,8 +1,8 @@
 use csv::ReaderBuilder;
 use flate2::read::GzDecoder;
-use rsklearn::Dataset;
 use ndarray::prelude::*;
 use ndarray_csv::Array2Reader;
+use rsklearn::Dataset;
 
 #[cfg(any(feature = "iris", feature = "diabetes", feature = "winequality"))]
 fn array_from_buf(buf: &[u8]) -> Array2<f64> {
