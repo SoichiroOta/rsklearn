@@ -1042,6 +1042,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "rsklearn-dtree"
+version = "0.1.0"
+dependencies = [
+ "approx",
+ "argmin",
+ "ndarray 0.13.1",
+ "ndarray-linalg",
+ "ndarray-stats",
+ "num-traits",
+ "rsklearn",
+ "rsklearn-datasets",
+ "rsklearn-dstump",
+ "rsklearn-linear",
+ "rsklearn-zeror",
+ "serde",
+]
+
+[[package]]
 name = "rsklearn-linear"
 version = "0.1.0"
 dependencies = [

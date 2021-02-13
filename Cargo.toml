@@ -64,6 +64,7 @@ members = [
     "linear",
     "zeror",
     "dstump",
+    "dtree",
 ]
 
 [profile.release]
