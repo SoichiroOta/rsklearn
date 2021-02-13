@@ -6,12 +6,12 @@
 //!
 
 pub mod dataset;
+pub mod entropy;
 pub mod error;
 mod metrics_classification;
 mod metrics_regression;
 pub mod prelude;
 pub mod traits;
-pub mod entropy;
 
 pub use dataset::{Dataset, DatasetBase, DatasetPr, DatasetView, Float, Label};
 
