@@ -3,7 +3,8 @@ use std::error::Error;
 use ndarray::prelude::*;
 use ndarray::{Array, Ix2};
 
-use rsklearn_dstump::DecisionStump;
+use rsklearn::entropy::gini;
+use rsklearn_dtree::DecisionTree;
 use rsklearn_zeror::ZeroRule;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -20,7 +21,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    let plf = DecisionStump::<ZeroRule>::default();
+    let plf = DecisionTree::<ZeroRule>::new(gini, 1, 1);
     let model = plf.fit(dataset.records, targets);
 
     println!("Model: \n{}", model.str());

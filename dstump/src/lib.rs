@@ -397,3 +397,16 @@ impl DecisionStump<Linear> {
         }
     }
 }
+
+pub fn zero_rule_dstump(metric: fn(Array<f64, Ix2>) -> f64) -> DecisionStump<ZeroRule> {
+    DecisionStump::<ZeroRule>::new(metric)
+}
+
+pub fn linear_dstump(
+    metric: fn(Array<f64, Ix2>) -> f64,
+    epochs: Option<usize>,
+    lr: Option<f64>,
+    early_stop: Option<f64>,
+) -> DecisionStump<Linear> {
+    DecisionStump::<Linear>::new(metric, epochs, lr, early_stop)
+}
