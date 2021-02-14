@@ -107,23 +107,21 @@ impl DecisionStump<ZeroRule> {
 
     pub fn fit(&mut self, x: Array<f64, Ix2>, y: Array<f64, Ix2>) -> &Self {
         let leaf = self.leaf;
-        self.left = Some(leaf());
-        self.right = Some(leaf());
-        let (left, right) = self.split_tree(x, y);
+        let (left, right) = self.split_tree(x.clone(), y.clone());
         if left.len() > 0 {
-            let mut x_left = Array::<f64, Ix2>::zeros((left.len(), x.shape()[1]));
+            let mut x_left = Array::<f64, Ix2>::zeros((left.len(), x.clone().shape()[1]));
             for left_elm in left.iter() {
                 x_left
                     .slice_mut(s![*left_elm, ..])
                     .assign(&x.slice(s![*left_elm, ..]));
             }
-            let mut y_left = Array::<f64, Ix2>::zeros((left.len(), y.shape()[1]));
+            let mut y_left = Array::<f64, Ix2>::zeros((left.len(), y.clone().shape()[1]));
             for left_elm in left.iter() {
                 y_left
                     .slice_mut(s![*left_elm, ..])
                     .assign(&y.slice(s![*left_elm, ..]));
             }
-            self.left.unwrap().fit(x_left, y_left);
+            self.left = Some(leaf().fit(x_left, y_left));
         }
         if right.len() > 0 {
             let mut x_right = Array::<f64, Ix2>::zeros((right.len(), x.shape()[1]));
@@ -138,7 +136,7 @@ impl DecisionStump<ZeroRule> {
                     .slice_mut(s![*right_elm, ..])
                     .assign(&y.slice(s![*right_elm, ..]));
             }
-            self.left.unwrap().fit(x_right, y_right);
+            self.right = Some(leaf().fit(x_right, y_right));
         }
         self
     }
@@ -153,13 +151,13 @@ impl DecisionStump<ZeroRule> {
                 x_l.slice_mut(s![*l_elm, ..])
                     .assign(&x.slice(s![*l_elm, ..]))
             }
-            let left = self.left.unwrap().predict(x_l);
+            let left = self.left.as_ref().unwrap().predict(x_l);
             let mut x_r = Array::<f64, Ix2>::zeros((r.len(), x.shape()[1]));
             for r_elm in r.iter() {
                 x_r.slice_mut(s![*r_elm, ..])
                     .assign(&x.slice(s![*r_elm, ..]))
             }
-            let right = self.left.unwrap().predict(x_r);
+            let right = self.right.as_ref().unwrap().predict(x_r);
             let mut z = Array::<f64, Ix2>::zeros((x.shape()[0], left.shape()[1]));
             for l_elm in l.iter() {
                 z.slice_mut(s![*l_elm, ..])
@@ -171,9 +169,9 @@ impl DecisionStump<ZeroRule> {
             }
             Some(z)
         } else if l.len() > 0 {
-            Some(self.left.unwrap().predict(x))
+            Some(self.left.as_ref().unwrap().predict(x))
         } else if r.len() > 0 {
-            Some(self.right.unwrap().predict(x))
+            Some(self.right.as_ref().unwrap().predict(x))
         } else {
             None
         }
