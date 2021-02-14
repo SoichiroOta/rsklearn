@@ -1055,6 +1055,7 @@ dependencies = [
  "rsklearn-datasets",
  "rsklearn-dstump",
  "rsklearn-linear",
+ "rsklearn-numrs",
  "rsklearn-zeror",
  "serde",
 ]
@@ -1071,6 +1072,20 @@ dependencies = [
  "num-traits",
  "rsklearn",
  "rsklearn-datasets",
+ "serde",
+]
+
+[[package]]
+name = "rsklearn-numrs"
+version = "0.1.0"
+dependencies = [
+ "approx",
+ "argmin",
+ "ndarray 0.13.1",
+ "ndarray-linalg",
+ "ndarray-stats",
+ "num-traits",
+ "rsklearn",
  "serde",
 ]
 

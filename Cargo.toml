@@ -65,6 +65,7 @@ members = [
     "zeror",
     "dstump",
     "dtree",
+    "numrs",
 ]
 
 [profile.release]

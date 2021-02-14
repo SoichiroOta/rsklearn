@@ -1,5 +1,5 @@
 [package]
-name = "rsklearn-dtree"
+name = "rsklearn-numrs"
 version = "0.1.0"
 authors = ["Soichiro Ota <libarta.official@gmail.com>"]
 description = "A Machine Learning framework for Rust"
@@ -8,8 +8,8 @@ edition = "2018"
 repository = "https://github.com/SoichiroOta/rsklearn"
 readme = "README.md"
 
-keywords = ["machine-learning", "rsklearn", "ai", "ml", "decision-tree"]
-categories = ["algorithms", "mathematics", "science"]
+keywords = ["array", "data-structure", "multidimensional", "matrix", "blas"]
+categories = ["data-structures", "science"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -22,11 +22,6 @@ argmin = {version="0.3.1", features=["ndarrayl"]}
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 
 rsklearn = { version = "0.1.0", path = ".." }
-rsklearn-linear = { version = "0.1.0", path = "../linear" }
-rsklearn-zeror = { version = "0.1.0", path = "../zeror" }
-rsklearn-dstump = { version = "0.1.0", path = "../dstump" }
-rsklearn-numrs = { version = "0.1.0", path = "../numrs" }
 
 [dev-dependencies]
-rsklearn-datasets = { version = "0.1.0", path = "../datasets", features = ["iris", "diabetes"] }
 approx = "0.3.2"

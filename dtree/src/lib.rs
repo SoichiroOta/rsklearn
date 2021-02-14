@@ -1,10 +1,12 @@
 extern crate ndarray;
 use ndarray::prelude::*;
-use ndarray::{Array, Ix1, Ix2};
+use ndarray::{Array, Ix1, Ix2, Ix3};
+use ndarray_stats::QuantileExt;
 
 use rsklearn::entropy::gini;
 use rsklearn_dstump::{linear_leaf, zero_rule_leaf, DecisionStump};
 use rsklearn_linear::Linear;
+use rsklearn_numrs::partial_argsort;
 use rsklearn_zeror::ZeroRule;
 
 pub struct DecisionTree<T> {
@@ -93,7 +95,7 @@ impl<'a> DecisionTree<ZeroRule> {
         m1 + m2
     }
 
-    pub fn split_tree(
+    pub fn split_tree_slow(
         &mut self,
         x: Array<f64, Ix2>,
         y: Array<f64, Ix2>,
@@ -127,6 +129,72 @@ impl<'a> DecisionTree<ZeroRule> {
         }
         self.score = score;
         (left, right)
+    }
+
+    pub fn split_tree_fast(
+        &mut self,
+        x: Array<f64, Ix2>,
+        y: Array<f64, Ix2>,
+    ) -> (Vec<usize>, Vec<usize>) {
+        self.feat_index = 0;
+        self.feat_val = f64::INFINITY;
+        let mut score = f64::INFINITY;
+        let mut xindex = Array::<usize, Ix2>::zeros((x.shape()[0], x.shape()[1]));
+        for i in 0..x.shape()[1] {
+            let mut x_col = Array::<f64, Ix1>::zeros(x.shape()[0]);
+            x_col.assign(&x.slice(s![.., i]));
+            let x_col_index = partial_argsort(&x_col.clone(), false);
+            xindex.slice_mut(s![.., i]).assign(&x_col_index);
+        }
+        let mut ysot = Array::<f64, Ix3>::zeros((y.shape()[0], y.shape()[1], xindex.shape()[1]));
+        for j in 0..xindex.shape()[1] {
+            for i in 0..xindex.shape()[0] {
+                ysot.slice_mut(s![i, .., j])
+                    .assign(&y.slice(s![xindex[[i, j]], ..]));
+            }
+        }
+        for f in 0..x.shape()[0] {
+            let ly = ysot.slice(s![..f, .., ..]);
+            let ry = ysot.slice(s![f.., .., ..]);
+            let mut loss = Array::<f64, Ix1>::zeros(x.shape()[1]);
+            for yp in 0..x.shape()[1] {
+                let loss_elm = if x[[xindex[[f - 1, yp]], yp]] != x[[xindex[[f, yp]], yp]] {
+                    self.make_loss(
+                        ly.slice(s![.., yp, ..]).to_owned(),
+                        ry.slice(s![.., yp, ..]).to_owned(),
+                    )
+                } else {
+                    f64::INFINITY
+                };
+                loss.slice_mut(s![yp]).fill(loss_elm);
+            }
+            let i = loss.argmin().unwrap();
+            if score > loss[[i]] {
+                score = loss[[i]];
+                self.feat_index = i;
+                self.feat_val = x[[xindex[[f, i]], i]];
+            }
+        }
+        let filter = x.slice(s![.., self.feat_index]).mapv(|a| a < self.feat_val);
+        let mut left = Vec::new();
+        let mut right = Vec::new();
+        for (i, f) in filter.iter().enumerate() {
+            if *f == true {
+                left.push(i);
+            } else {
+                right.push(i);
+            }
+        }
+        self.score = score;
+        (left, right)
+    }
+
+    pub fn split_tree(
+        &mut self,
+        x: Array<f64, Ix2>,
+        y: Array<f64, Ix2>,
+    ) -> (Vec<usize>, Vec<usize>) {
+        self.split_tree_fast(x, y)
     }
 
     pub fn get_node(&mut self, x: Array<f64, Ix2>, y: Array<f64, Ix2>) -> DecisionTree<ZeroRule> {
