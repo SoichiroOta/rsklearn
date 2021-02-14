@@ -170,7 +170,7 @@ impl DecisionStump<ZeroRule> {
             for (i, r_elm) in r.iter().enumerate() {
                 x_r.slice_mut(s![i, ..]).assign(&x.slice(s![*r_elm, ..]))
             }
-            let right = self.left.as_ref().unwrap().predict(x_r);
+            let right = self.right.as_ref().unwrap().predict(x_r);
             let mut z = Array::<f64, Ix2>::zeros((x.shape()[0], left.shape()[1]));
             for (i, l_elm) in l.iter().enumerate() {
                 z.slice_mut(s![*l_elm, ..]).assign(&left.slice(s![i, ..]));
@@ -362,7 +362,7 @@ impl DecisionStump<Linear> {
             for (i, r_elm) in r.iter().enumerate() {
                 x_r.slice_mut(s![i, ..]).assign(&x.slice(s![*r_elm, ..]))
             }
-            let right = self.left.as_ref().unwrap().predict(x_r, true);
+            let right = self.right.as_ref().unwrap().predict(x_r, true);
             let mut z = Array::<f64, Ix1>::zeros(x.shape()[0]);
             for (i, l_elm) in l.iter().enumerate() {
                 z.slice_mut(s![*l_elm]).assign(&left.slice(s![i]));

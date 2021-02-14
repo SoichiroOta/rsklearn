@@ -272,4 +272,53 @@ impl<'a> DecisionTree<ZeroRule> {
         }
         self
     }
+
+    pub fn predict(&self, x: Array<f64, Ix2>) -> Option<Array<f64, Ix2>> {
+        let feat = x.slice(s![.., self.feat_index]);
+        let val = self.feat_val;
+        let (l, r) = self.make_split(feat.to_owned(), val.to_owned());
+        if l.len() > 0 && r.len() > 0 {
+            let mut x_l = Array::<f64, Ix2>::zeros((l.len(), x.shape()[1]));
+            for (i, l_elm) in l.iter().enumerate() {
+                x_l.slice_mut(s![i, ..]).assign(&x.slice(s![*l_elm, ..]))
+            }
+            if self.left.as_ref().is_none() && self.left.as_ref().is_none() {
+                let left = self.left_node.as_ref().unwrap().predict(x_l).unwrap();
+                let mut x_r = Array::<f64, Ix2>::zeros((r.len(), x.shape()[1]));
+                for (i, r_elm) in r.iter().enumerate() {
+                    x_r.slice_mut(s![i, ..]).assign(&x.slice(s![*r_elm, ..]))
+                }
+                let right = self.right_node.as_ref().unwrap().predict(x_r).unwrap();
+                let mut z = Array::<f64, Ix2>::zeros((x.shape()[0], left.shape()[1]));
+                for (i, l_elm) in l.iter().enumerate() {
+                    z.slice_mut(s![*l_elm, ..]).assign(&left.slice(s![i, ..]));
+                }
+                for (i, r_elm) in r.iter().enumerate() {
+                    z.slice_mut(s![*r_elm, ..]).assign(&right.slice(s![i, ..]));
+                }
+                Some(z)
+            } else {
+                let left = self.left.as_ref().unwrap().predict(x_l);
+                let mut x_r = Array::<f64, Ix2>::zeros((r.len(), x.shape()[1]));
+                for (i, r_elm) in r.iter().enumerate() {
+                    x_r.slice_mut(s![i, ..]).assign(&x.slice(s![*r_elm, ..]))
+                }
+                let right = self.right.as_ref().unwrap().predict(x_r);
+                let mut z = Array::<f64, Ix2>::zeros((x.shape()[0], left.shape()[1]));
+                for (i, l_elm) in l.iter().enumerate() {
+                    z.slice_mut(s![*l_elm, ..]).assign(&left.slice(s![i, ..]));
+                }
+                for (i, r_elm) in r.iter().enumerate() {
+                    z.slice_mut(s![*r_elm, ..]).assign(&right.slice(s![i, ..]));
+                }
+                Some(z)
+            }
+        } else if l.len() > 0 {
+            Some(self.left.as_ref().unwrap().predict(x))
+        } else if r.len() > 0 {
+            Some(self.right.as_ref().unwrap().predict(x))
+        } else {
+            None
+        }
+    }
 }
