@@ -17,7 +17,7 @@ impl ZeroRule {
         ZeroRule { r: None }
     }
 
-    pub fn fit(&mut self, _x: Array<f64, Ix2>, y: Array<f64, Ix2>) -> &Self {
+    pub fn fit(mut self, _x: Array<f64, Ix2>, y: Array<f64, Ix2>) -> Self {
         let mut r = Array::<f64, Ix1>::zeros(y.shape()[1]);
         for i in 0..y.shape()[1] {
             r.slice_mut(s![i]).fill(y.slice(s![.., i]).mean().unwrap());
